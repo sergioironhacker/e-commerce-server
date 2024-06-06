@@ -2,6 +2,7 @@ const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const asyncHandler = require("express-async-handler");
 
+// Middleware para autenticar al usuario
 const authMiddleware = asyncHandler(async (req, res, next) => {
     let token;
     if (req?.headers?.authorization?.startsWith("Bearer")) {
@@ -17,18 +18,20 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
             throw new Error('Not Authorized');
         }
     } else {
-        throw new Error('token spired');
+        throw new Error('Token expired or not provided');
     }
 });
 
+// Middleware para verificar si el usuario es administrador
 const isAdmin = asyncHandler(async (req, res, next) => {
-    const { email } = await User.findOne({ email });
+   
+    const { email } = req.user;
+    const adminUser = await User.findOne({ email });
     if (adminUser.role !== "admin") {
-        throw new Error('you are not admin')
+        throw new Error('You are not admin');
     } else {
         next();
     }
 });
-
 
 module.exports = { authMiddleware, isAdmin };
